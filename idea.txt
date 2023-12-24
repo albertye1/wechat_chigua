@@ -1,0 +1,4 @@
+initial state: two people in a building in a clearing in a forest, want to survive wolves coming at night and forage for food in the daytime
+if wolves somehow can attack harder, then you lose the game basically.
+
+keep adding more people until you reach some stability
