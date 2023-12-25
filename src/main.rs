@@ -2,17 +2,21 @@ use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::prelude::*;
 
 // width and height of the game area
-const WIDTH: usize = 83;
-const HEIGHT: usize = 150;
-const CURSOR_Y: usize = 10 + HEIGHT;
+const WIDTH: f32 = 150.0;
+const HEIGHT: f32 = 300.0;
+const CURSOR_Y: f32 = 10.0 + HEIGHT;
 const FIRST: usize = 5;
+const MULT: f32 = 4.0;
+static FRUIT_SIZES: [f32; 9] = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0];
 
 #[derive(Component)]
-struct Cursor(usize); // cursor with initial location
+struct Cursor(f32); // cursor with initial location
 #[derive(Component)]
 struct Fruit; // fruit
 #[derive(Component)]
 struct FruitSize(usize); // size of fruit
+#[derive(Component)]
+struct FruitPos(f32, f32);
 #[derive(Resource)]
 struct DropSound(Handle<AudioSource>);
 
@@ -28,14 +32,16 @@ fn startup_sequence(
     commands.insert_resource(DropSound(drop_sound));
     // spawn a cloud (cursor) 
     // put a fruit at the location of the cloud
-    commands.spawn(Cursor(WIDTH / 2));
-    commands.spawn((Fruit, FruitSize(get_rand(FIRST))));
+    commands.spawn(Cursor(WIDTH / 2.0));
+    let size: usize = get_rand(FIRST);
+    commands.spawn((Fruit, FruitSize(size)));
     commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(shape::Circle::new(50.).into()).into(),
+        mesh: meshes.add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into()).into(),
         material: materials.add(ColorMaterial::from(Color::PURPLE)),
-        transform: Transform::from_translation(Vec3::new(-150., 0., 0.)),
+        transform: Transform::from_translation(Vec3::new(WIDTH / 2.0, CURSOR_Y, 0.)),
         ..default()
     });
+    println!("size: {}", size);
 }
 
 fn get_rand(n: usize) -> usize {
