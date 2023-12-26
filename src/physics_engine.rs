@@ -11,8 +11,10 @@ impl PhysicsEngine {
         println!("A: {}, B:{}, A+B: {}", a, b, c);
     }
     // one tick of falling
-    pub fn fall(mut pos: Vector2D, mut vel: Vector2D) {
-        pos = pos + vel;
-        vel.set_y(vel.y() - 1.0);
+    pub fn fall(pos: &mut Vector2D, vel: &mut Vector2D) {
+        println!("before; {} {}", pos.y(), vel.y());
+        *pos = *pos + *vel;
+        vel.set_y(vel.y() - 0.3);
+        println!("after; {} {}", pos.y(), vel.y());
     }
 }
