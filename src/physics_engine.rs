@@ -10,4 +10,9 @@ impl PhysicsEngine {
         let c = a + b;
         println!("A: {}, B:{}, A+B: {}", a, b, c);
     }
+    // one tick of falling
+    pub fn fall(mut pos: Vector2D, mut vel: Vector2D) {
+        pos = pos + vel;
+        vel.set_y(vel.y() - 1.0);
+    }
 }

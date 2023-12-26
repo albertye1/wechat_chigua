@@ -1,29 +1,35 @@
-use std::f64;
+use std::f32;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vector2D {
-    x: f64,
-    y: f64,
+    x: f32,
+    y: f32,
 }
 
 impl Vector2D {
-    pub fn new(x: f64, y: f64) -> Vector2D {
+    pub fn new(x: f32, y: f32) -> Vector2D {
         Vector2D { x, y }
     }
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> f32 {
         self.x
     }
-    pub fn y(&self) -> f64 {
+    pub fn y(&self) -> f32 {
         self.y
     }
-    pub fn distance(&self, other: &Vector2D) -> f64 {
+    pub fn set_x(&mut self, x: f32) {
+        self.x = x;
+    }
+    pub fn set_y(&mut self, y: f32) {
+        self.y = y;
+    }
+    pub fn distance(&self, other: &Vector2D) -> f32 {
         let dx = self.x - other.x();
         let dy = self.y - other.y();
         (dx * dx + dy * dy).sqrt()
     }
-    pub fn dot(&self, other: &Vector2D) -> f64 {
+    pub fn dot(&self, other: &Vector2D) -> f32 {
         self.x * other.x() + self.y * other.y()
     }
 }
@@ -55,18 +61,18 @@ impl Neg for Vector2D {
         }
     }
 }
-impl Mul<f64> for Vector2D {
+impl Mul<f32> for Vector2D {
     type Output = Vector2D;
-    fn mul(self, other: f64) -> Vector2D {
+    fn mul(self, other: f32) -> Vector2D {
         Vector2D {
             x: self.x + other,
             y: self.y + other,
         }
     }
 }
-impl Div<f64> for Vector2D {
+impl Div<f32> for Vector2D {
     type Output = Vector2D;
-    fn div(self, other: f64) -> Vector2D {
+    fn div(self, other: f32) -> Vector2D {
         Vector2D {
             x: self.x / other,
             y: self.y / other,

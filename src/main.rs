@@ -1,5 +1,6 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use wechat_chigua::physics_engine::PhysicsEngine;
+use wechat_chigua::vector2d::Vector2D;
 use rand::prelude::*;
 
 // game dimensions
@@ -16,6 +17,7 @@ const CURSOR_Y: f32 = 10.0 + HEIGHT;
 const CURSOR_STEP: f32 = 2.5;
 // other constants, categorize later
 const FIRST: usize = 5;
+const FPS: f32 = 240.0;
 const MULT: f32 = 4.0;
 static FRUIT_SIZES: [f32; 9] = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0];
 
@@ -28,7 +30,7 @@ struct CursorFruit; // the fruit on the cursor right now
 #[derive(Component)]
 struct FruitSize(usize); // size of fruit
 #[derive(Component)]
-struct FruitPos(f32, f32);
+struct FruitInfo(Vector2D, Vector2D); // position and velocity of the fruit.
 #[derive(Resource)]
 struct DropSound(Handle<AudioSource>);
 
@@ -40,8 +42,10 @@ fn create_fruits(
     let size: usize = get_rand(FIRST);
     let mid: f32 = (L_WALL + R_WALL) / 2.0;
     commands.spawn(Cursor(mid));
+    let pos: Vector2D = Vector2D::new(mid, CURSOR_Y);
+    let vel: Vector2D = Vector2D::new(0.0, 0.0);
     // spawn a fruit, with the given size and initial position, at the cursor, and draw it according to given specs.
-    commands.spawn((Fruit, FruitSize(size), FruitPos(mid, CURSOR_Y), CursorFruit, MaterialMesh2dBundle {
+    commands.spawn((Fruit, FruitSize(size), FruitInfo(pos, vel), CursorFruit, MaterialMesh2dBundle {
         mesh: meshes
             .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
             .into(),
@@ -53,8 +57,31 @@ fn create_fruits(
 }
 
 // when prompted by key, drop the fruit
-fn drop_fruit() {
+fn drop_fruit(
+    mut commands: Commands, 
+    keys: Res<Input<KeyCode>>, 
+    mut c_query: Query<&mut Cursor>, 
+    mut cf_query: Query<(Entity, &FruitSize, &FruitInfo), With<CursorFruit>>, 
+    mut meshes: ResMut<Assets<Mesh>>, 
+    mut materials: ResMut<Assets<ColorMaterial>>,) {
     // requires physics be implemented first
+    if let Ok(mut cursor_fruit) = cf_query.get_single_mut() {
+        let size: usize = cursor_fruit.1.0;
+        let pos = cursor_fruit.2.0;
+        let vel = cursor_fruit.2.1;
+        PhysicsEngine::fall(pos, vel);
+        if let Ok(mut cursor) = c_query.get_single_mut() {
+            commands.spawn((Fruit, FruitSize(size), FruitInfo(pos, vel), MaterialMesh2dBundle {
+                mesh: meshes
+                    .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(pos.x(), pos.y(), 0.)),
+                ..default()
+            }));
+        }
+        commands.entity(cursor_fruit.0).despawn();
+    }
 }
 
 // merge two fruits and re-center, updating the physics engine after?
@@ -129,7 +156,7 @@ fn get_rand(n: usize) -> usize {
     (x * (n as f64)).floor() as usize
 }
 
-fn print_fruits(query: Query<&FruitPos, With<Fruit>>) {
+fn print_fruits(query: Query<&FruitInfo, With<Fruit>>) {
     for fruit in &query {
         println!("{}, {}", fruit.0, fruit.1);
     }
