@@ -27,15 +27,18 @@ struct FruitPos(f32, f32);
 struct DropSound(Handle<AudioSource>);
 
 fn create_fruits(
-    mut commands: Commands, 
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>) {
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     let size: usize = get_rand(FIRST);
     let mid: f32 = (L_WALL + R_WALL) / 2.0;
     commands.spawn(Cursor(mid));
     commands.spawn((Fruit, FruitSize(size), FruitPos(WIDTH / 3.0, CURSOR_Y)));
     commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into()).into(),
+        mesh: meshes
+            .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
+            .into(),
         material: materials.add(ColorMaterial::from(Color::WHITE)),
         transform: Transform::from_translation(Vec3::new(mid, CURSOR_Y, 0.)),
         ..default()
@@ -47,10 +50,14 @@ fn redraw_top(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    query: Query<&Cursor>, orig: Query<&MaterialMesh2dBundle>) {
+    query: Query<&Cursor>,
+    orig: Query<&MaterialMesh2dBundle>,
+) {
     if let Ok(cursor) = query.get_single() {
         commands.spawn(MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into()).into(),
+            mesh: meshes
+                .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
+                .into(),
             material: materials.add(ColorMaterial::from(Color::WHITE)),
             transform: Transform::from_translation(Vec3::new(cursor.0, CURSOR_Y, 0.)),
             ..default()
@@ -69,9 +76,7 @@ fn drop_fruit() {
 }
 
 // merge two fruits and re-center, updating the physics engine after?
-fn merge_fruits() {
-    
-}
+fn merge_fruits() {}
 
 fn key_input(keys: Res<Input<KeyCode>>, mut query: Query<&mut Cursor>) {
     if let Ok(mut cursor) = query.get_single_mut() {
@@ -88,16 +93,17 @@ fn key_input(keys: Res<Input<KeyCode>>, mut query: Query<&mut Cursor>) {
 }
 
 fn startup_sequence(
-    mut commands: Commands, 
+    mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<ColorMaterial>>, 
-    asset_server: Res<AssetServer>) {
+    materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
     // make a canvas
     commands.spawn(Camera2dBundle::default());
     // we can import the bgm as well as the dropping and collision noises here.
     let drop_sound = asset_server.load("placeholder.wav"); // just a placeholder until i actually get this figured out
     commands.insert_resource(DropSound(drop_sound));
-    // spawn a cloud (cursor) 
+    // spawn a cloud (cursor)
     // put a fruit at the location of the cloud
     create_fruits(commands, meshes, materials);
 }
