@@ -153,33 +153,32 @@ fn update_colliding(
                 pos.set_y(B_WALL + radius);
                 // vel.set_y(vel.y().abs() * 0.7);
                 vel.set_y(0.0);
-            }
-            // check for collisions with other balls.
-            // not working because i cant mut f_query twice or smth? idk
-
-            // let mut j = 0;
-            // for mut other in &mut f_query {
-            //     let mut pos2 = other.0 .0;
-            //     let mut vel2 = other.0 .1;
-            //     let radius2 = MULT * FRUIT_SIZES[other.2 .0] as f32;
-            //     if i == j { // make sure we're not colliding the same thing
-            //         continue;
-            //     }
-            //     PhysicsEngine::collide(&mut pos, &mut vel, radius, &mut pos2, &mut vel2, radius2);
-            //
-            //     other.0 .0 = pos2;
-            //     other.0 .1 = vel2;
-            //     other.1.translation.x = other.0 .0.x();
-            //     other.1.translation.y = other.0 .0.y();
-            //     j += 1;
-            // }
-
-            // apply transform changes
+            }// apply transform changes
             fruit.0 .0 = pos;
             fruit.0 .1 = vel;
             fruit.1.translation.x = fruit.0 .0.x();
             fruit.1.translation.y = fruit.0 .0.y();
-            i += 1;
+        }
+        let mut combinations = f_query.iter_combinations_mut();
+        while let Some([mut fruit, mut other]) = combinations.fetch_next() {
+            // check for collisions with other balls.
+            // not working because i cant mut f_query twice or smth? idk
+            let mut pos = fruit.0 .0;
+            let mut vel = fruit.0 .1;
+            let radius = MULT * FRUIT_SIZES[fruit.2 .0] as f32;
+            let mut pos2 = other.0 .0;
+            let mut vel2 = other.0 .1;
+            let radius2 = MULT * FRUIT_SIZES[other.2 .0] as f32;
+            PhysicsEngine::collide(&mut pos, &mut vel, radius, &mut pos2, &mut vel2, radius2);
+        
+            other.0 .0 = pos2;
+            other.0 .1 = vel2;
+            other.1.translation.x = other.0 .0.x();
+            other.1.translation.y = other.0 .0.y();
+            fruit.0 .0 = pos;
+            fruit.0 .1 = vel;
+            fruit.1.translation.x = fruit.0 .0.x();
+            fruit.1.translation.y = fruit.0 .0.y();
         }
     }
 }

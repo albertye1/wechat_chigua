@@ -16,7 +16,7 @@ impl PhysicsEngine {
     pub fn fall(pos: &mut Vector2D, vel: &mut Vector2D) {
         // println!("before; {} {}", pos.y(), vel.y());
         *pos = *pos + *vel;
-        vel.set_y(vel.y() - 0.3);
+        vel.set_y(vel.y() - 0.1);
         // println!("after; {} {}", pos.y(), vel.y());
     }
 
