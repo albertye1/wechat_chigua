@@ -162,10 +162,11 @@ fn update_colliding(
             //     let mut pos2 = other.0 .0;
             //     let mut vel2 = other.0 .1;
             //     let radius2 = MULT * FRUIT_SIZES[other.2 .0] as f32;
-            //     if i == j {
+            //     if i == j { // make sure we're not colliding the same thing
             //         continue;
             //     }
             //     PhysicsEngine::collide(&mut pos, &mut vel, radius, &mut pos2, &mut vel2, radius2);
+            //
             //     other.0 .0 = pos2;
             //     other.0 .1 = vel2;
             //     other.1.translation.x = other.0 .0.x();
