@@ -1,10 +1,10 @@
+use bevy::ui::BackgroundColor;
+
 use crate::vector2d::Vector2D;
-pub struct PhysicsEngine {
-    bounciness: f32,
-}
+pub struct PhysicsEngine {}
 impl PhysicsEngine {
     pub fn new() -> PhysicsEngine {
-        PhysicsEngine { bounciness: 0.0 }
+        PhysicsEngine {}
     }
     pub fn test(&self) {
         let a = Vector2D::new(2., 3.);
@@ -14,16 +14,15 @@ impl PhysicsEngine {
     }
     // one tick of falling
     pub fn fall(pos: &mut Vector2D, vel: &mut Vector2D) {
-        println!("before; {} {}", pos.y(), vel.y());
+        // println!("before; {} {}", pos.y(), vel.y());
         *pos = *pos + *vel;
         vel.set_y(vel.y() - 0.3);
-        println!("after; {} {}", pos.y(), vel.y());
+        // println!("after; {} {}", pos.y(), vel.y());
     }
 
     // given two circles, test for collision,
     // and update positions and velocities of both if they collide
     pub fn collide(
-        &self,
         pos1: &mut Vector2D,
         vel1: &mut Vector2D,
         radius1: f32,
@@ -31,6 +30,7 @@ impl PhysicsEngine {
         vel2: &mut Vector2D,
         radius2: f32,
     ) {
+        let bounciness = 0.0;
         let vector = *pos2 - *pos1;
         let normal = vector.normalized();
         let vel_vector = *vel2 - *vel1;
@@ -38,7 +38,7 @@ impl PhysicsEngine {
         let depth = radius1 + radius2 - vector.magnitude();
 
         let mut diff = normal.x() * vel_vector.x() + normal.y() * vel_vector.y();
-        diff = (-1.0 - self.bounciness) * (diff / 2.0);
+        diff = (-1.0 - bounciness) * (diff / 2.0);
 
         if depth > 0.0 {
             *pos1 = *pos1 + (normal * -depth / 2.0);
