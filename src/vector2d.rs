@@ -32,6 +32,16 @@ impl Vector2D {
     pub fn dot(&self, other: &Vector2D) -> f32 {
         self.x * other.x() + self.y * other.y()
     }
+    pub fn magnitude(&self) -> f32 {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+    pub fn mag_squared(&self) -> f32 {
+        (self.x * self.x + self.y * self.y)
+    }
+    pub fn normalized(&self) -> Vector2D {
+        let d = self.magnitude();
+        self / d;
+    }
 }
 
 impl Add for Vector2D {
