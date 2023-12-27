@@ -36,11 +36,14 @@ impl Vector2D {
         (self.x * self.x + self.y * self.y).sqrt()
     }
     pub fn mag_squared(&self) -> f32 {
-        (self.x * self.x + self.y * self.y)
+        self.x * self.x + self.y * self.y
     }
     pub fn normalized(&self) -> Vector2D {
         let d = self.magnitude();
-        self / d;
+        Vector2D {
+            x: self.x / d,
+            y: self.y / d,
+        }
     }
 }
 

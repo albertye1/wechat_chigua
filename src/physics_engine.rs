@@ -33,19 +33,19 @@ impl PhysicsEngine {
     ) {
         let vector = *pos2 - *pos1;
         let normal = vector.normalized();
-        let vel_vector = *vel2 - vel1;
+        let vel_vector = *vel2 - *vel1;
 
         let depth = radius1 + radius2 - vector.magnitude();
 
-        let diff = normal.x() * vel_vector.x() + normal.y() * velVector.y();
+        let mut diff = normal.x() * vel_vector.x() + normal.y() * vel_vector.y();
         diff = (-1.0 - self.bounciness) * (diff / 2.0);
 
-        if (depth > 0) {
-            *pos1 = *pos1 + (*normal * -depth / 2.0);
-            *pos2 = *pos2 + (*normal * depth / 2.0);
+        if depth > 0.0 {
+            *pos1 = *pos1 + (normal * -depth / 2.0);
+            *pos2 = *pos2 + (normal * depth / 2.0);
 
-            *vel1 = *vel1 + *normal * -diff;
-            *vel2 = *vel2 + *normal * diff;
+            *vel1 = *vel1 + normal * -diff;
+            *vel2 = *vel2 + normal * diff;
         }
     }
 }
