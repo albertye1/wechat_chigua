@@ -20,6 +20,10 @@ impl PhysicsEngine {
         // println!("after; {} {}", pos.y(), vel.y());
     }
 
+    fn mass(radius: f32) -> f32 {
+        return radius * radius * radius;
+    }
+
     // given two circles, test for collision,
     // and update positions and velocities of both if they collide
     pub fn collide(
@@ -44,7 +48,7 @@ impl PhysicsEngine {
             *pos1 = *pos1 + (normal * -depth / 2.0);
             *pos2 = *pos2 + (normal * depth / 2.0);
 
-            *vel1 = *vel1 + normal * -diff;
+            *vel1 = *vel1 + normal * (-diff);
             *vel2 = *vel2 + normal * diff;
         }
     }

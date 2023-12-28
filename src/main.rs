@@ -1,4 +1,4 @@
-use std::arch::x86_64::_SIDD_POSITIVE_POLARITY;
+// use std::arch::x86_64::_SIDD_POSITIVE_POLARITY;
 
 use bevy::math::quat;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
@@ -22,7 +22,9 @@ const CURSOR_STEP: f32 = 2.5;
 const FIRST: usize = 5;
 const FPS: f32 = 240.0;
 const MULT: f32 = 4.0;
-static FRUIT_SIZES: [f32; 9] = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0];
+const EPS: f32 = 0.00001;
+static FRUIT_SIZES: [f32; 11] = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0, 19.0, 21.0];
+static FRUIT_COLORS: [Color; 11] = [Color::RED, Color::SALMON, Color::PURPLE, Color::GOLD, Color::ORANGE, Color::CRIMSON, Color::LIME_GREEN, Color::PINK, Color::YELLOW, Color::BEIGE, Color::GREEN];
 
 #[derive(Component)]
 struct Cursor(f32); // cursor with location
@@ -62,7 +64,7 @@ fn create_fruits(
             mesh: meshes
                 .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
                 .into(),
-            material: materials.add(ColorMaterial::from(Color::WHITE)),
+            material: materials.add(ColorMaterial::from(FRUIT_COLORS[size])),
             transform: Transform::from_translation(Vec3::new(cursor.0, CURSOR_Y, 0.)),
             ..default()
         },
@@ -94,7 +96,7 @@ fn drop_fruit(
                     mesh: meshes
                         .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
                         .into(),
-                    material: materials.add(ColorMaterial::from(Color::WHITE)),
+                    material: materials.add(ColorMaterial::from(FRUIT_COLORS[size])),
                     transform: Transform::from_translation(Vec3::new(pos.x(), pos.y(), 0.)),
                     ..default()
                 },
@@ -179,6 +181,20 @@ fn update_colliding(
             fruit.0 .1 = vel;
             fruit.1.translation.x = fruit.0 .0.x();
             fruit.1.translation.y = fruit.0 .0.y();
+        }
+    }
+}
+
+fn friction(
+    time: Res<Time>,
+    mut timer: ResMut<PhysicsTimer>,
+    mut f_query: Query<(&mut FruitInfo, &mut FruitSize), With<FallingFruit>>) {
+    if timer.0.tick(time.delta()).just_finished() {
+        for mut fruit in &mut f_query {
+            let vel = fruit.0.1.x();
+            if fruit.0.1.y() < EPS {
+                fruit.0.1.set_x(vel * 0.9);
+            }
         }
     }
 }
@@ -297,6 +313,6 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_plugins((DefaultPlugins, InitialPlugin))
-        .add_systems(Update, (move_cursor, drop_fruit, update_colliding))
+        .add_systems(Update, (move_cursor, drop_fruit, update_colliding, friction))
         .run();
 }
