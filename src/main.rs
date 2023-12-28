@@ -25,17 +25,17 @@ const MULT: f32 = 4.0;
 const EPS: f32 = 0.00001;
 static FRUIT_SIZES: [f32; 11] = [3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0, 19.0, 21.0, 23.0];
 static FRUIT_COLORS: [Color; 11] = [
-    Color::RED,
-    Color::SALMON,
-    Color::PURPLE,
-    Color::GOLD,
-    Color::ORANGE,
-    Color::CRIMSON,
-    Color::LIME_GREEN,
-    Color::PINK,
-    Color::YELLOW,
-    Color::BEIGE,
-    Color::GREEN,
+    Color::RED, // cherry
+    Color::SALMON, // strawberry
+    Color::PURPLE, // grape
+    Color::GOLD, // orange
+    Color::ORANGE, // persimmon
+    Color::CRIMSON, // apple
+    Color::LIME_GREEN, // pear
+    Color::PINK, // peach
+    Color::YELLOW, // pineapple
+    Color::BEIGE, // cantaloupe
+    Color::GREEN, // watermelon
 ];
 
 #[derive(Component)]
@@ -121,24 +121,7 @@ fn drop_fruit(
     }
 }
 
-fn update_falling(
-    time: Res<Time>,
-    mut timer: ResMut<PhysicsTimer>,
-    mut f_query: Query<(&mut FruitInfo, &mut Transform), With<FallingFruit>>,
-) {
-    if timer.0.tick(time.delta()).just_finished() {
-        for mut fruit in &mut f_query {
-            let mut pos = fruit.0 .0;
-            let mut vel = fruit.0 .1;
-            PhysicsEngine::fall(&mut pos, &mut vel);
-            fruit.0 .0 = pos;
-            fruit.0 .1 = vel;
-            // println!("{} {}", fruit.0 .0.x(), fruit.0 .0.y());
-            fruit.1.translation.x = fruit.0 .0.x();
-            fruit.1.translation.y = fruit.0 .0.y();
-        }
-    }
-}
+// check all pairs of fruits for any collisions
 fn update_colliding(
     time: Res<Time>,
     mut timer: ResMut<PhysicsTimer>,
@@ -180,8 +163,6 @@ fn update_colliding(
         for i in 1..4 {
             let mut combinations = f_query.iter_combinations_mut();
             while let Some([mut fruit, mut other]) = combinations.fetch_next() {
-                // check for collisions with other balls.
-                // not working because i cant mut f_query twice or smth? idk
                 let mut pos = fruit.0 .0;
                 let mut vel = fruit.0 .1;
                 let radius = MULT * FRUIT_SIZES[fruit.2 .0] as f32;
@@ -189,7 +170,7 @@ fn update_colliding(
                 let mut vel2 = other.0 .1;
                 let radius2 = MULT * FRUIT_SIZES[other.2 .0] as f32;
                 PhysicsEngine::collide(&mut pos, &mut vel, radius, &mut pos2, &mut vel2, radius2);
-
+                // update with values gotten from the physics engine
                 other.0 .0 = pos2;
                 other.0 .1 = vel2;
                 other.1.translation.x = other.0 .0.x();
@@ -203,6 +184,7 @@ fn update_colliding(
     }
 }
 
+// friction -- prevents the fruits from rolling continuously
 fn friction(
     time: Res<Time>,
     mut timer: ResMut<PhysicsTimer>,
@@ -218,6 +200,7 @@ fn friction(
     }
 }
 
+// each time we run this we check for 2 circles and replace them with a larger item centered.
 fn check_merges(
     mut commands: Commands,
     mut f_query: Query<(Entity, &mut FruitInfo, &mut FruitSize), With<FallingFruit>>,
@@ -261,22 +244,6 @@ fn check_merges(
     }
 }
 
-// merge two fruits and re-center, updating the physics engine after?
-fn merge_fruits(
-    time: Res<Time>,
-    mut timer: ResMut<PhysicsTimer>,
-    mut commands: Commands,
-    mut f_query: Query<(Entity, &mut FruitInfo, &mut FruitSize), With<FallingFruit>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    if timer.0.tick(time.delta()).just_finished() {
-        let mut has_uncollided = false;
-        while !has_uncollided {
-        }
-    }
-}
-
 // move cursor and associated fruit
 fn move_cursor(
     keys: Res<Input<KeyCode>>,
@@ -310,6 +277,11 @@ fn move_cursor(
             info.0 = pos;
         }
     }
+}
+
+// to be implemented -- spawn a game over screen if any fruit reaches height of U_WALL or greater.
+fn death_check() {
+
 }
 
 fn startup_sequence(
