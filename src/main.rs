@@ -19,12 +19,24 @@ const LINE_WIDTH: f32 = 3.0;
 const CURSOR_Y: f32 = 10.0 + HEIGHT;
 const CURSOR_STEP: f32 = 2.5;
 // other constants, categorize later
-const FIRST: usize = 5;
+const FIRST: usize = 7;
 const FPS: f32 = 240.0;
 const MULT: f32 = 4.0;
 const EPS: f32 = 0.00001;
 static FRUIT_SIZES: [f32; 11] = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0, 19.0, 21.0];
-static FRUIT_COLORS: [Color; 11] = [Color::RED, Color::SALMON, Color::PURPLE, Color::GOLD, Color::ORANGE, Color::CRIMSON, Color::LIME_GREEN, Color::PINK, Color::YELLOW, Color::BEIGE, Color::GREEN];
+static FRUIT_COLORS: [Color; 11] = [
+    Color::RED,
+    Color::SALMON,
+    Color::PURPLE,
+    Color::GOLD,
+    Color::ORANGE,
+    Color::CRIMSON,
+    Color::LIME_GREEN,
+    Color::PINK,
+    Color::YELLOW,
+    Color::BEIGE,
+    Color::GREEN,
+];
 
 #[derive(Component)]
 struct Cursor(f32); // cursor with location
@@ -140,8 +152,7 @@ fn update_colliding(
             let mut pos = fruit.0 .0;
             let mut vel = fruit.0 .1;
             let radius = MULT * FRUIT_SIZES[fruit.2 .0] as f32;
-            // apply velocity, then apply gravity
-            PhysicsEngine::fall(&mut pos, &mut vel);
+
             // check for wall collisions
             if pos.x() - radius < L_WALL {
                 pos.set_x(L_WALL + radius);
@@ -155,32 +166,39 @@ fn update_colliding(
                 pos.set_y(B_WALL + radius);
                 // vel.set_y(vel.y().abs() * 0.7);
                 vel.set_y(0.0);
-            }// apply transform changes
+                vel.set_x(vel.x() * 0.99); // friction
+            }
+            // apply velocity, then apply gravity
+            PhysicsEngine::fall(&mut pos, &mut vel);
+
+            // apply transform changes
             fruit.0 .0 = pos;
             fruit.0 .1 = vel;
             fruit.1.translation.x = fruit.0 .0.x();
             fruit.1.translation.y = fruit.0 .0.y();
         }
-        let mut combinations = f_query.iter_combinations_mut();
-        while let Some([mut fruit, mut other]) = combinations.fetch_next() {
-            // check for collisions with other balls.
-            // not working because i cant mut f_query twice or smth? idk
-            let mut pos = fruit.0 .0;
-            let mut vel = fruit.0 .1;
-            let radius = MULT * FRUIT_SIZES[fruit.2 .0] as f32;
-            let mut pos2 = other.0 .0;
-            let mut vel2 = other.0 .1;
-            let radius2 = MULT * FRUIT_SIZES[other.2 .0] as f32;
-            PhysicsEngine::collide(&mut pos, &mut vel, radius, &mut pos2, &mut vel2, radius2);
-        
-            other.0 .0 = pos2;
-            other.0 .1 = vel2;
-            other.1.translation.x = other.0 .0.x();
-            other.1.translation.y = other.0 .0.y();
-            fruit.0 .0 = pos;
-            fruit.0 .1 = vel;
-            fruit.1.translation.x = fruit.0 .0.x();
-            fruit.1.translation.y = fruit.0 .0.y();
+        for i in 1..4 {
+            let mut combinations = f_query.iter_combinations_mut();
+            while let Some([mut fruit, mut other]) = combinations.fetch_next() {
+                // check for collisions with other balls.
+                // not working because i cant mut f_query twice or smth? idk
+                let mut pos = fruit.0 .0;
+                let mut vel = fruit.0 .1;
+                let radius = MULT * FRUIT_SIZES[fruit.2 .0] as f32;
+                let mut pos2 = other.0 .0;
+                let mut vel2 = other.0 .1;
+                let radius2 = MULT * FRUIT_SIZES[other.2 .0] as f32;
+                PhysicsEngine::collide(&mut pos, &mut vel, radius, &mut pos2, &mut vel2, radius2);
+
+                other.0 .0 = pos2;
+                other.0 .1 = vel2;
+                other.1.translation.x = other.0 .0.x();
+                other.1.translation.y = other.0 .0.y();
+                fruit.0 .0 = pos;
+                fruit.0 .1 = vel;
+                fruit.1.translation.x = fruit.0 .0.x();
+                fruit.1.translation.y = fruit.0 .0.y();
+            }
         }
     }
 }
@@ -188,12 +206,13 @@ fn update_colliding(
 fn friction(
     time: Res<Time>,
     mut timer: ResMut<PhysicsTimer>,
-    mut f_query: Query<(&mut FruitInfo, &mut FruitSize), With<FallingFruit>>) {
+    mut f_query: Query<(&mut FruitInfo, &mut FruitSize), With<FallingFruit>>,
+) {
     if timer.0.tick(time.delta()).just_finished() {
         for mut fruit in &mut f_query {
-            let vel = fruit.0.1.x();
-            if fruit.0.1.y() < EPS {
-                fruit.0.1.set_x(vel * 0.9);
+            let vel = fruit.0 .1.x();
+            if fruit.0 .1.y() < EPS {
+                // fruit.0.1.set_x(vel * 0.9);
             }
         }
     }
@@ -313,6 +332,9 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_plugins((DefaultPlugins, InitialPlugin))
-        .add_systems(Update, (move_cursor, drop_fruit, update_colliding, friction))
+        .add_systems(
+            Update,
+            (move_cursor, drop_fruit, update_colliding, friction),
+        )
         .run();
 }

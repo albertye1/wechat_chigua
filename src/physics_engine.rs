@@ -16,7 +16,7 @@ impl PhysicsEngine {
     pub fn fall(pos: &mut Vector2D, vel: &mut Vector2D) {
         // println!("before; {} {}", pos.y(), vel.y());
         *pos = *pos + *vel;
-        vel.set_y(vel.y() - 0.1);
+        vel.set_y(vel.y() - 0.07);
         // println!("after; {} {}", pos.y(), vel.y());
     }
 
@@ -34,7 +34,7 @@ impl PhysicsEngine {
         vel2: &mut Vector2D,
         radius2: f32,
     ) {
-        let bounciness = 0.0;
+        let bounciness = 0.2;
         let vector = *pos2 - *pos1;
         let normal = vector.normalized();
         let vel_vector = *vel2 - *vel1;
@@ -45,8 +45,17 @@ impl PhysicsEngine {
         diff = (-1.0 - bounciness) * (diff / 2.0);
 
         if depth > 0.0 {
-            *pos1 = *pos1 + (normal * -depth / 2.0);
-            *pos2 = *pos2 + (normal * depth / 2.0);
+            println!(
+                "pos1:{}, pos2:{}\n pos2-pos1:{} normalized:{}\n depth:{}\n total dist moved:{}",
+                *pos1,
+                *pos2,
+                vector,
+                normal,
+                depth,
+                (normal * (depth / 2.0))
+            );
+            *pos1 = *pos1 + (normal * (-depth / 2.0));
+            *pos2 = *pos2 + (normal * (depth / 2.0));
 
             *vel1 = *vel1 + normal * (-diff);
             *vel2 = *vel2 + normal * diff;

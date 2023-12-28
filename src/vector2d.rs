@@ -78,8 +78,8 @@ impl Mul<f32> for Vector2D {
     type Output = Vector2D;
     fn mul(self, other: f32) -> Vector2D {
         Vector2D {
-            x: self.x + other,
-            y: self.y + other,
+            x: self.x * other,
+            y: self.y * other,
         }
     }
 }
