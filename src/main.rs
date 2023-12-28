@@ -19,11 +19,11 @@ const LINE_WIDTH: f32 = 3.0;
 const CURSOR_Y: f32 = 10.0 + HEIGHT;
 const CURSOR_STEP: f32 = 2.5;
 // other constants, categorize later
-const FIRST: usize = 7;
+const FIRST: usize = 6;
 const FPS: f32 = 240.0;
 const MULT: f32 = 4.0;
 const EPS: f32 = 0.00001;
-static FRUIT_SIZES: [f32; 11] = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0, 19.0, 21.0];
+static FRUIT_SIZES: [f32; 11] = [3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0, 19.0, 21.0, 23.0];
 static FRUIT_COLORS: [Color; 11] = [
     Color::RED,
     Color::SALMON,
@@ -218,8 +218,64 @@ fn friction(
     }
 }
 
+fn check_merges(
+    mut commands: Commands,
+    mut f_query: Query<(Entity, &mut FruitInfo, &mut FruitSize), With<FallingFruit>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    let mut has_uncollided = true;
+    let mut combinations = f_query.iter_combinations_mut();
+    while let Some([mut fruit, mut other]) = combinations.fetch_next() {
+        if fruit.2.0 != other.2.0 || fruit.2.0 == 10 {
+            continue;
+        }
+        let mut pos1 = fruit.1.0;
+        let radius = MULT * FRUIT_SIZES[fruit.2.0] as f32;
+        let mut pos2 = other.1.0;
+        let depth = 2.0 * radius - (pos2 - pos1).magnitude();
+        if depth >= 0.0 {
+            // we have a collision -- now merge!
+            has_uncollided = false;
+            let size = fruit.2.0 + 1;
+            let pos = (pos1 + pos2) / 2.0;
+            commands.spawn((
+                Fruit,
+                FruitSize(size),
+                FruitInfo(pos, Vector2D::new(0.0,0.0)),
+                FallingFruit,
+                MaterialMesh2dBundle {
+                    mesh: meshes
+                        .add(shape::Circle::new(MULT * FRUIT_SIZES[size]).into())
+                        .into(),
+                    material: materials.add(ColorMaterial::from(FRUIT_COLORS[size])),
+                    transform: Transform::from_translation(Vec3::new(pos.x(), pos.y(), 0.)),
+                    ..default()
+                },
+            ));
+            
+            commands.entity(fruit.0).despawn();
+            commands.entity(other.0).despawn();
+            break;
+        }
+    }
+}
+
 // merge two fruits and re-center, updating the physics engine after?
-fn merge_fruits() {}
+fn merge_fruits(
+    time: Res<Time>,
+    mut timer: ResMut<PhysicsTimer>,
+    mut commands: Commands,
+    mut f_query: Query<(Entity, &mut FruitInfo, &mut FruitSize), With<FallingFruit>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    if timer.0.tick(time.delta()).just_finished() {
+        let mut has_uncollided = false;
+        while !has_uncollided {
+        }
+    }
+}
 
 // move cursor and associated fruit
 fn move_cursor(
@@ -311,12 +367,6 @@ fn get_rand(n: usize) -> usize {
     (x * (n as f64)).floor() as usize
 }
 
-fn print_fruits(query: Query<&FruitInfo, With<Fruit>>) {
-    for fruit in &query {
-        println!("{}, {}", fruit.0, fruit.1);
-    }
-}
-
 pub struct InitialPlugin;
 
 impl Plugin for InitialPlugin {
@@ -334,7 +384,7 @@ fn main() {
         .add_plugins((DefaultPlugins, InitialPlugin))
         .add_systems(
             Update,
-            (move_cursor, drop_fruit, update_colliding, friction),
+            (move_cursor, drop_fruit, check_merges, update_colliding, friction),
         )
         .run();
 }

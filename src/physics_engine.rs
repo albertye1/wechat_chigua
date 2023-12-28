@@ -45,6 +45,7 @@ impl PhysicsEngine {
         diff = (-1.0 - bounciness) * (diff / 2.0);
 
         if depth > 0.0 {
+            /*
             println!(
                 "pos1:{}, pos2:{}\n pos2-pos1:{} normalized:{}\n depth:{}\n total dist moved:{}",
                 *pos1,
@@ -54,6 +55,7 @@ impl PhysicsEngine {
                 depth,
                 (normal * (depth / 2.0))
             );
+            */
             *pos1 = *pos1 + (normal * (-depth / 2.0));
             *pos2 = *pos2 + (normal * (depth / 2.0));
 
