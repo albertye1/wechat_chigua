@@ -29,6 +29,9 @@ impl Vector2D {
         let dy = self.y - other.y();
         (dx * dx + dy * dy).sqrt()
     }
+    pub fn ortho(&self) -> Vector2D {
+        Vector2D::new(-self.y, self.x)
+    }
     pub fn dot(&self, other: &Vector2D) -> f32 {
         self.x * other.x() + self.y * other.y()
     }

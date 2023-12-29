@@ -249,18 +249,22 @@ fn move_cursor(
     keys: Res<Input<KeyCode>>,
     mut c_query: Query<&mut Cursor>,
     mut t_query: Query<&mut Transform, With<CursorFruit>>,
-    mut p_query: Query<&mut FruitInfo, With<CursorFruit>>,
+    mut p_query: Query<(&mut FruitInfo, &FruitSize), With<CursorFruit>>,
 ) {
     if let Ok(mut cursor) = c_query.get_single_mut() {
-        if keys.pressed(KeyCode::Left) {
-            cursor.0 = L_WALL.max(cursor.0 - CURSOR_STEP);
-            // println!("{}", cursor.0);
-        } else if keys.pressed(KeyCode::Right) {
-            // move cursor right
-            cursor.0 = R_WALL.min(cursor.0 + CURSOR_STEP);
-            // println!("{}", cursor.0);
-        } else {
-            return;
+        if let Ok((_, size)) = p_query.get_single_mut() {
+            if keys.pressed(KeyCode::Left) {
+                let x = L_WALL + 2.0*FRUIT_SIZES[size.0];
+                cursor.0 = x.max(cursor.0 - CURSOR_STEP);
+                // println!("{}", cursor.0);
+            } else if keys.pressed(KeyCode::Right) {
+                // move cursor right
+                let x = R_WALL - 2.0*FRUIT_SIZES[size.0];
+                cursor.0 = x.min(cursor.0 + CURSOR_STEP);
+                // println!("{}", cursor.0);
+            } else {
+                return;
+            }
         }
     }
 
@@ -269,7 +273,7 @@ fn move_cursor(
             trans.translation.x = cursor.0;
         }
 
-        if let Ok(mut info) = p_query.get_single_mut() {
+        if let Ok((mut info, _)) = p_query.get_single_mut() {
             let mut pos = info.0;
             // println!("{}, {}", pos.x(), pos.y());
             pos.set_x(cursor.0);
